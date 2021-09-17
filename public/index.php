@@ -1,47 +1,54 @@
 <?php
+
 use Bramus\Router\Router;
-use eftec\bladeone\BladeOne;
 use eftec\PdoOne;
 use eftec\ValidationOne;
 
-$root_dir = dirname(__DIR__);
-require $root_dir . '/vendor/autoload.php';
+// Afficher les erreurs php si non activé dans php.ini
+ini_set('display_errors', 'on');
+
+// Si l'id de session n'existe pas, alors démarrer la session.
+if (!session_id()) {
+    session_start();
+}
+
+$rootDir = dirname(__DIR__);
+require $rootDir . '/vendor/autoload.php';
 
 $val = new ValidationOne(); // Library de validation
 
-
 // Initialisation du fichier d'environement .env
-$dotenv = Dotenv\Dotenv::createImmutable(dirname(__DIR__));
+$dotenv = Dotenv\Dotenv::createImmutable($rootDir);
 $dotenv->load();
 
-// Rendu avec le système blade indépendant
-function render($template, $params)
-{
-    $root_dir = dirname(__DIR__);
-    $views = $root_dir . '/views';
-    $cache = $root_dir . '/storage/cache';
-    $blade = new BladeOne($views, $cache, BladeOne::MODE_DEBUG);
-    //$blade->addInclude('modules.sidebar', 'sidebar');
-    //$blade->addInclude('modules.navbar', 'navbar');
-
-    echo $blade->run($template, $params);
-}
+require $rootDir . '/config/app.php';
 
 // Initialisation de la base de données avec PDO
-function initDB()
+function initDatabase()
 {
-    $con = new PdoOne("mysql", $_ENV['DB_HOST'], $_ENV['DB_USER'], $_ENV['DB_PASS'], $_ENV['DB_NAME']);
-    $con->logLevel = 3; // Utile pour debug et permet de trouver les problèmes en rapport avec les requêtes MySQL.
-    $con->open();
+    require '../config/app.php';
 
-    return $con;
+    try {
+        $conn = new PdoOne("mysql", $config['db_host'], $config['db_user'], $config['db_pass'], $config['db_name']);
+        $conn->logLevel = 4; // Utile pour debug et permet de trouver les problèmes en rapport avec les requêtes MySQL. 1 = prod | 4 = dev
+        $conn->open();
+    } catch (RuntimeException $e) {
+        echo 'Erreur de connexion à la base de données.';
+    }
+
+    return $conn;
 }
 
+// Création de l'instance du Router.
 $router = new Router();
-$router->get('/', function () {
-    $con = initDB();
 
-    render('home', ['titre' => 'Accueil • ', 'app' => $_ENV['APP_NAME']]); // [] = array()
-});
+// Définition de l'espace de nom par défaut pour tout les controllers.
+$router->setNamespace('\App\Controllers');
+$router->set404('ErrorController@show');
+
+$router->get('/', 'HomeController@show');
+
+$router->get('/api-github', 'ApiController@github');
+$router->get('/api-google', 'ApiController@google');
 
 $router->run();
