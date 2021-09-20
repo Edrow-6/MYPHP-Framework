@@ -5,6 +5,7 @@ declare(strict_types=1);
 //namespace App\Utils;
 
 use eftec\bladeone\BladeOne;
+use eftec\PdoOne;
 
 // Rendu avec le système blade indépendants
 function render($template, $params = []): void
@@ -20,4 +21,20 @@ function render($template, $params = []): void
     ]);
 
     echo $blade->run($template, $params);
+}
+
+// Initialisation de la base de données avec PDO
+function initDatabase()
+{
+    require dirname(__DIR__) . '/../config/app.php';
+
+    try {
+        $conn = new PdoOne("mysql", $config['db_host'], $config['db_user'], $config['db_pass'], $config['db_name']);
+        $conn->logLevel = 4; // Utile pour debug et permet de trouver les problèmes en rapport avec les requêtes MySQL. 1 = prod | 4 = dev
+        $conn->open();
+    } catch (RuntimeException $e) {
+        echo 'Erreur de connexion à la base de données.';
+    }
+
+    return $conn;
 }

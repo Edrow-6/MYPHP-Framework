@@ -1,7 +1,6 @@
 <?php
 
 use Bramus\Router\Router;
-use eftec\PdoOne;
 use eftec\ValidationOne;
 
 // Afficher les erreurs php si non activé dans php.ini
@@ -23,21 +22,7 @@ $dotenv->load();
 
 require $rootDir . '/config/app.php';
 
-// Initialisation de la base de données avec PDO
-function initDatabase()
-{
-    require '../config/app.php';
 
-    try {
-        $conn = new PdoOne("mysql", $config['db_host'], $config['db_user'], $config['db_pass'], $config['db_name']);
-        $conn->logLevel = 4; // Utile pour debug et permet de trouver les problèmes en rapport avec les requêtes MySQL. 1 = prod | 4 = dev
-        $conn->open();
-    } catch (RuntimeException $e) {
-        echo 'Erreur de connexion à la base de données.';
-    }
-
-    return $conn;
-}
 
 // Création de l'instance du Router.
 $router = new Router();
