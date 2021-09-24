@@ -1,6 +1,7 @@
 <?php
 
 use Bramus\Router\Router;
+<<<<<<< HEAD
 use Symfony\Component\ErrorHandler\Debug;
 
 // Init des accès aux bibliothèques.
@@ -12,6 +13,9 @@ $dotenv->load();
 
 // Fichier de configurations avec les variables .env
 require __DIR__.'/../config/app.php';
+=======
+use eftec\ValidationOne;
+>>>>>>> 4c7cdb58c64bd9db87e6f63146f650b7be2e8c1b
 
 // Afficher les erreurs php si non activé dans php.ini
 ini_set('display_errors', 'on');
@@ -21,9 +25,24 @@ if (!session_id()) {
     session_start();
 }
 
+<<<<<<< HEAD
 if ($config['app_debug']) {
     Debug::enable();
 }
+=======
+$rootDir = dirname(__DIR__);
+require $rootDir . '/vendor/autoload.php';
+
+$val = new ValidationOne(); // Library de validation
+
+// Initialisation du fichier d'environement .env
+$dotenv = Dotenv\Dotenv::createImmutable($rootDir);
+$dotenv->load();
+
+require $rootDir . '/config/app.php';
+
+
+>>>>>>> 4c7cdb58c64bd9db87e6f63146f650b7be2e8c1b
 
 // Création de l'instance du Router.
 $router = new Router();
