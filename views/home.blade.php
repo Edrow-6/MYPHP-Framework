@@ -2,6 +2,8 @@
 @extends('layouts.app', ['page_type' => 'home', 'body_classes' => ''])
 
 @section('content')
-{{-- Contenu de la page --}}
+<div class="min-h-screen">
+    @include('components.navbar')
+</div>
 @endsection
 

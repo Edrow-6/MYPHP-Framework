@@ -1,8 +1,17 @@
 <?php
 
 use Bramus\Router\Router;
-use eftec\PdoOne;
-use eftec\ValidationOne;
+use Symfony\Component\ErrorHandler\Debug;
+
+// Init des accès aux bibliothèques.
+require __DIR__.'/../vendor/autoload.php';
+
+// Initialisation du fichier d'environement .env
+$dotenv = Dotenv\Dotenv::createImmutable(__DIR__.'/../');
+$dotenv->load();
+
+// Fichier de configurations avec les variables .env
+require __DIR__.'/../config/app.php';
 
 // Afficher les erreurs php si non activé dans php.ini
 ini_set('display_errors', 'on');
@@ -12,31 +21,8 @@ if (!session_id()) {
     session_start();
 }
 
-$rootDir = dirname(__DIR__);
-require $rootDir . '/vendor/autoload.php';
-
-$val = new ValidationOne(); // Library de validation
-
-// Initialisation du fichier d'environement .env
-$dotenv = Dotenv\Dotenv::createImmutable($rootDir);
-$dotenv->load();
-
-require $rootDir . '/config/app.php';
-
-// Initialisation de la base de données avec PDO
-function initDatabase()
-{
-    require '../config/app.php';
-
-    try {
-        $conn = new PdoOne("mysql", $config['db_host'], $config['db_user'], $config['db_pass'], $config['db_name']);
-        $conn->logLevel = 4; // Utile pour debug et permet de trouver les problèmes en rapport avec les requêtes MySQL. 1 = prod | 4 = dev
-        $conn->open();
-    } catch (RuntimeException $e) {
-        echo 'Erreur de connexion à la base de données.';
-    }
-
-    return $conn;
+if ($config['app_debug']) {
+    Debug::enable();
 }
 
 // Création de l'instance du Router.
@@ -46,9 +32,35 @@ $router = new Router();
 $router->setNamespace('\App\Controllers');
 $router->set404('ErrorController@show');
 
-$router->get('/', 'HomeController@show');
+$router->mount('/auth', function () use ($router) {
+    $router->mount('/login', function () use ($router) {
+        $router->get('/', 'AuthController@show');
+        $router->post('/', 'AuthController@login');
 
-$router->get('/api-github', 'ApiController@github');
-$router->get('/api-google', 'ApiController@google');
+        $router->mount('/api', function () use ($router) {
+            $router->get('/github', 'ApiController@github');
+            $router->get('/google', 'ApiController@google');
+        });
+    });
+
+    $router->get('/logout', 'AuthController@logout');
+});
+
+$router->get('/', 'HomeController@show');
+$router->post('/', 'HomeController@pastebin');
+
+// Paramètres Utilisateur
+$router->before('GET|POST', '/settings/.*', function () {
+    if (!isset($_SESSION['id'])) {
+        header('location: /auth/login');
+        exit();
+    }
+});
+
+$router->mount('/settings', function () use ($router) {
+    $router->get('/account', 'SettingsController@account');
+    $router->get('/security', 'SettingsController@security');
+    $router->get('/billing', 'SettingsController@billing');
+});
 
 $router->run();
