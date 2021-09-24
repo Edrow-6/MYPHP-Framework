@@ -1,7 +1,6 @@
 <?php
 
 use Bramus\Router\Router;
-<<<<<<< HEAD
 use Symfony\Component\ErrorHandler\Debug;
 
 // Init des accès aux bibliothèques.
@@ -13,9 +12,6 @@ $dotenv->load();
 
 // Fichier de configurations avec les variables .env
 require __DIR__.'/../config/app.php';
-=======
-use eftec\ValidationOne;
->>>>>>> 4c7cdb58c64bd9db87e6f63146f650b7be2e8c1b
 
 // Afficher les erreurs php si non activé dans php.ini
 ini_set('display_errors', 'on');
@@ -25,24 +21,9 @@ if (!session_id()) {
     session_start();
 }
 
-<<<<<<< HEAD
 if ($config['app_debug']) {
     Debug::enable();
 }
-=======
-$rootDir = dirname(__DIR__);
-require $rootDir . '/vendor/autoload.php';
-
-$val = new ValidationOne(); // Library de validation
-
-// Initialisation du fichier d'environement .env
-$dotenv = Dotenv\Dotenv::createImmutable($rootDir);
-$dotenv->load();
-
-require $rootDir . '/config/app.php';
-
-
->>>>>>> 4c7cdb58c64bd9db87e6f63146f650b7be2e8c1b
 
 // Création de l'instance du Router.
 $router = new Router();
@@ -81,5 +62,29 @@ $router->mount('/settings', function () use ($router) {
     $router->get('/security', 'SettingsController@security');
     $router->get('/billing', 'SettingsController@billing');
 });
+
+// Panel Utilisateur
+$router->before('GET|POST', '/dash/.*', function () {
+    if (!isset($_SESSION['id'])) {
+        header('location: /auth/login');
+        exit();
+    }
+});
+
+$router->mount('/dash', function () use ($router) {
+    $router->get('/', 'DashController@index');
+});
+
+// Panel Administration
+$router->before('GET|POST', '/dash/admin/.*', function () {
+    if (isset($_SESSION['type_compte']) == 'admin') {
+        // Code ici
+    } else {
+        header('location: /auth/login');
+        exit();
+    }
+});
+
+$router->mount('/dash/admin', function () use ($router) {});
 
 $router->run();
