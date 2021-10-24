@@ -1,9 +1,14 @@
 <?php
 
+use App\Utils\Condition;
 use Bramus\Router\Router;
+use eftec\PdoOne;
 use Symfony\Component\ErrorHandler\Debug;
 
-// Init des accès aux bibliothèques.
+// Si l'id de session n'existe pas, alors démarrer la session.
+if (!session_id()) @session_start();
+
+// Init des accès aux librairies.
 require __DIR__.'/../vendor/autoload.php';
 
 // Initialisation du fichier d'environement .env
@@ -11,18 +16,34 @@ $dotenv = Dotenv\Dotenv::createImmutable(__DIR__.'/../');
 $dotenv->load();
 
 // Fichier de configurations avec les variables .env
-require __DIR__.'/../config/app.php';
+$config = require __DIR__.'/../config/app.php';
 
 // Afficher les erreurs php si non activé dans php.ini
 ini_set('display_errors', 'on');
 
-// Si l'id de session n'existe pas, alors démarrer la session.
-if (!session_id()) {
-    session_start();
-}
-
 if ($config['app_debug']) {
     Debug::enable();
+}
+
+$pdo = null;
+/**
+ * Initialisation de la base de données avec PDO
+ * @return eftec\PdoOne
+ * @throws Exception
+ */
+function database(): eftec\PdoOne
+{
+    // Fichier de configurations avec les variables .env
+    $config = require __DIR__.'/../config/app.php';
+
+    global $pdo;
+    if ($pdo === null) {
+        $pdo = new PdoOne("mysql", $config['db_host'], $config['db_user'], $config['db_pass'], $config['db_name']);
+        $pdo->logLevel = 4; // Utile pour debug et permet de trouver les problèmes en rapport avec les requêtes MySQL. 1 = prod | 4 = dev
+        $pdo->open();
+    }
+
+    return $pdo;
 }
 
 // Création de l'instance du Router.
@@ -34,52 +55,66 @@ $router->set404('ErrorController@show');
 
 $router->mount('/auth', function () use ($router) {
     $router->mount('/login', function () use ($router) {
-        $router->get('/', 'AuthController@show');
-        $router->post('/', 'AuthController@login');
-
-        $router->mount('/api', function () use ($router) {
-            $router->get('/github', 'ApiController@github');
-            $router->get('/google', 'ApiController@google');
-        });
+        $router->get('/', 'LoginController@show');
+        $router->post('/', 'LoginController@login');
     });
 
-    $router->get('/logout', 'AuthController@logout');
+    $router->mount('/register', function () use ($router) {
+        $router->get('/', 'RegisterController@show');
+        $router->post('/', 'RegisterController@register');
+    });
+
+    $router->mount('/api', function () use ($router) {
+        $router->get('/github', 'ApiController@github');
+        $router->get('/google', 'ApiController@google');
+    });
+
+    $router->get('/logout', 'LoginController@logout');
 });
 
+
 $router->get('/', 'HomeController@show');
-$router->post('/', 'HomeController@pastebin');
 
 // Paramètres Utilisateur
 $router->before('GET|POST', '/settings/.*', function () {
-    if (!isset($_SESSION['id'])) {
+    if (!Condition::isAuth()) {
         header('location: /auth/login');
+        exit();
+    }
+});
+$router->before('GET|POST', '/auth/login', function () {
+    if (Condition::isAuth()) {
+        header('location: /');
         exit();
     }
 });
 
 $router->mount('/settings', function () use ($router) {
     $router->get('/account', 'SettingsController@account');
+    $router->post('/account', 'SettingsController@saveAccount');
+
     $router->get('/security', 'SettingsController@security');
+    $router->post('/security', 'SettingsController@saveSecurity');
+
     $router->get('/billing', 'SettingsController@billing');
+    $router->post('/billing', 'SettingsController@saveBilling');
 });
 
 // Panel Utilisateur
-$router->before('GET|POST', '/dash/.*', function () {
-    if (!isset($_SESSION['id'])) {
+$router->before('GET|POST', '/dash', function () {
+    if (!Condition::isAuth()) {
         header('location: /auth/login');
         exit();
     }
 });
 
 $router->mount('/dash', function () use ($router) {
-    $router->get('/', 'DashController@index');
+    $router->get('/', 'DashController@show');
 });
 
 // Panel Administration
 $router->before('GET|POST', '/dash/admin/.*', function () {
-    if (isset($_SESSION['type_compte']) == 'admin') {
-        // Code ici
-    } else {
+    if (!Condition::isAuth() || !Condition::asRole('admin')) {
         header('location: /auth/login');
         exit();
     }

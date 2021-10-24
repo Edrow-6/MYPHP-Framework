@@ -1,46 +1,50 @@
 {{-- Vue de la page, type de la page (classe css) pour conditions, classes de la page (body) --}}
-@extends('layouts.app', ['page_type' => 'security', 'body_classes' => 'bg-gray-100'])
+@extends('settings.layout', ['title' => 'Paramètres Sécurité', 'page_type' => 'security', 'body_classes' => 'bg-gray-200'])
 
 @section('content')
-@include('components.navbar')
+  <form class="divide-y divide-gray-200 lg:col-span-9" action="#" method="POST">
+    <!-- Section mot de passe -->
+    <div class="py-6 px-4 sm:p-6 lg:pb-8">
+      <div>
+        <h2 class="text-lg leading-6 font-medium text-gray-900">Mot de passe</h2>
+        <p class="mt-1 text-sm text-gray-500">
+          Vous pouvez définir un nouveau mot de passe pour votre compte.
+        </p>
+      </div>
 
-<div class="mt-6 mb-6 lg:grid lg:grid-cols-12 lg:gap-x-5">
-  @include('settings.components.sidenav')
-
-  <div class="mr-6 space-y-6 sm:px-6 lg:px-0 lg:col-span-9">
-    <form action="#" method="POST">
-      <div class="shadow sm:rounded-md sm:overflow-hidden">
-        <div class="px-4 py-6 space-y-6 bg-white sm:p-6">
-          <div>
-            <h3 class="text-lg font-medium leading-6 text-gray-900">Mot de passe</h3>
-            <p class="mt-1 text-sm text-gray-500">Modifiez votre mot de passe et ne l'oubliez pas.</p>
-          </div>
+      <div class="mt-6 flex flex-col lg:flex-row">
+        <div class="flex-grow space-y-6">
 
           <div class="grid grid-cols-6 gap-6">
-
             <div class="col-span-6 sm:col-span-2">
-              <label for="phone-number" class="block text-sm font-medium text-gray-700">Ancien mot de passe</label>
-              <input type="password" name="old-password" id="old-password" autocomplete="old-pwd" pattern="[A-Za-z0-9-_.]{5,20}" value="" class="block w-full px-3 py-2 mt-1 transition duration-100 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm">
+              <label for="old-password" class="block text-sm font-medium text-gray-700">Ancien mot de passe</label>
+              <input type="password" name="old-password" id="old-password" autocomplete="old-pwd" pattern="[A-Za-z0-9-_.]{5,20}" value="" class="mt-1 block transition duration-100 w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm">
             </div>
 
             <div class="col-span-6 sm:col-span-2">
-              <label for="phone-number" class="block text-sm font-medium text-gray-700">Nouveau mot de passe</label>
-              <input type="password" name="new-password" id="new-password" autocomplete="new-pwd" pattern="[A-Za-z0-9-_.]{5,20}" value="" class="block w-full px-3 py-2 mt-1 transition duration-100 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm">
+              <label for="new-password" class="block text-sm font-medium text-gray-700">Nouveau mot de passe</label>
+              <input type="password" name="new-password" id="new-password" autocomplete="new-pwd" pattern="[A-Za-z0-9-_.]{5,20}" value="" class="mt-1 block transition duration-100 w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm">
             </div>
 
             <div class="col-span-6 sm:col-span-2">
-              <label for="phone-number" class="block text-sm font-medium text-gray-700">Confirmer nouveau mot de passe</label>
-              <input type="password" name="confirm-password" id="confirm-password"" autocomplete="confirm-pwd" pattern="[A-Za-z0-9-_.]{5,20}" value="" class="block w-full px-3 py-2 mt-1 transition duration-100 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm">
+              <label for="confirm-password" class="block text-sm font-medium text-gray-700">Confirmer nouveau mot de passe</label>
+              <input type="password" name="confirm-password" id="confirm-password"" autocomplete="confirm-pwd" pattern="[A-Za-z0-9-_.]{5,20}" value="" class="mt-1 block transition duration-100 w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm">
             </div>
           </div>
-        </div>
-        <div class="px-4 py-3 text-right bg-gray-50 sm:px-6">
-          <button type="submit" class="inline-flex justify-center px-4 py-2 text-sm font-medium text-white duration-150 transform bg-blue-500 border border-transparent rounded-md shadow-sm hover:scale-105 hover:shadow hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-400">
-            Sauvegarder
-          </button>
+
         </div>
       </div>
-    </form>
-  </div>
-</div>
+    </div>
+
+    <div class="pt-4 divide-y divide-gray-200">
+      <div class="pb-4 px-4 flex justify-end sm:px-6">
+        <button type="button" class="bg-white border border-gray-300 rounded-md shadow-sm py-2 px-4 inline-flex justify-center text-sm font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-sky-500">
+          Annuler
+        </button>
+        <button type="submit" name="save-security" class="ml-5 bg-sky-700 border border-transparent rounded-md shadow-sm py-2 px-4 inline-flex justify-center text-sm font-medium text-white hover:bg-sky-800 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-sky-500">
+          Sauvegarder
+        </button>
+      </div>
+    </div>
+  </form>
 @endsection
